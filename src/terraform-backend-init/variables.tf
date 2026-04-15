@@ -63,7 +63,7 @@ variable "ydb_params" {
         table_column_name = "LockID"
         table_column_type = "S"
     }
-    description = "value"
+    description = "Параметры YDB и создаваемой таблицы"
 }
 
 variable "dest_folder" {
