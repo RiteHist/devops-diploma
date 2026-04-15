@@ -25,9 +25,7 @@ resource "yandex_ydb_database_serverless" "tflock_db" {
 module "tflock_table" {
   source = "./ydb-table"
   zone = var.zone
-  dynamodb = yandex_ydb_database_serverless.tflock_db.document_api_endpoint 
-  access_key = yandex_iam_service_account_static_access_key.tf_sa_key.access_key
-  secret_key = yandex_iam_service_account_static_access_key.tf_sa_key.secret_key
+  dynamodb = yandex_ydb_database_serverless.tflock_db.document_api_endpoint
   table_name = var.ydb_params.table_path
   attribute_name = var.ydb_params.table_column_name
   attribute_type = var.ydb_params.table_column_type
