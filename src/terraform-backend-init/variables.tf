@@ -1,30 +1,43 @@
 variable "cloud_id" {
     type = string
+    description = "ID облака"
 }
 
 variable "folder_id" {
     type = string
+    description = "ID каталога в облаке"
 }
 
 variable "zone" {
     type = string
     default = "ru-central1-a"
+    description = "Дефолтная зона доступности"
 }
 
 variable "bucket_params" {
     type = object({
         prefix = string
         max_size = number
+        force_destroy = bool
     })
     default = {
         prefix = "tfstate"
-        max_size = 1024
+        max_size = 10485760
+        force_destroy = true
     }
+    description = "Параметры s3 бакета"
 }
 
-variable "sa_name" {
-    type = string
-    default = "terraform-state"
+variable "sa_names" {
+    type = list(string)
+    default = ["terraform-state", "terraform-admin"]
+    description = "Список имен сервисных аккаунтов"
+}
+
+variable "roles" {
+    type = list(string)
+    default = ["storage.editor", "ydb.editor", "admin"]
+    description = "Список ролей для сервисных аккаунтов"
 }
 
 variable "ydb_params" {
@@ -46,8 +59,15 @@ variable "ydb_params" {
         enable_throttling_rcu_limit = true
         provisioned_rcu_limit = 0
         throttling_rcu_limit = 10
-        table_path = "tfstate"
+        table_path = "tflock"
         table_column_name = "LockID"
-        table_column_type = "Utf8"
+        table_column_type = "S"
     }
+    description = "value"
+}
+
+variable "dest_folder" {
+    type = string
+    default = "../terraform-main-infra"
+    description = "Относительный путь до каталога, где должны создаться файлы конфигурации бэкэнда"
 }

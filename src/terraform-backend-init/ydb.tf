@@ -9,13 +9,26 @@ resource "yandex_ydb_database_serverless" "tflock_db" {
     }
 }
 
-resource "yandex_ydb_table" "tflock_table" {
-    path = var.ydb_params.table_path
-    connection_string = yandex_ydb_database_serverless.tflock_db.ydb_full_endpoint
-    column {
-      name = var.ydb_params.table_column_name
-      type = var.ydb_params.table_column_type
-    }
+# resource "yandex_ydb_table" "tflock_table" {
+#     path = var.ydb_params.table_path
+#     connection_string = yandex_ydb_database_serverless.tflock_db.ydb_full_endpoint
+#     column {
+#       name = var.ydb_params.table_column_name
+#       type = var.ydb_params.table_column_type
+#     }
 
-    primary_key = ["${var.ydb_params.table_column_name}"]
+#     store = "column"
+
+#     primary_key = ["${var.ydb_params.table_column_name}"]
+# }
+
+module "tflock_table" {
+  source = "./ydb-table"
+  zone = var.zone
+  dynamodb = yandex_ydb_database_serverless.tflock_db.document_api_endpoint 
+  access_key = yandex_iam_service_account_static_access_key.tf_sa_key.access_key
+  secret_key = yandex_iam_service_account_static_access_key.tf_sa_key.secret_key
+  table_name = var.ydb_params.table_path
+  attribute_name = var.ydb_params.table_column_name
+  attribute_type = var.ydb_params.table_column_type
 }

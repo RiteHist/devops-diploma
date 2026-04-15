@@ -11,3 +11,4 @@
 personal.auto.tfvars
 tfinit.sh
 backend.hcl
+authorized_key.json
