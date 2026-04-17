@@ -26,6 +26,6 @@ terraform {
 provider "yandex" {
   cloud_id  = var.cloud_id
   folder_id = var.folder_id
-  zone      = var.zone
+  zone      = var.zone_list[0]
   service_account_key_file = file("./authorized_key.json")
 }
