@@ -46,5 +46,6 @@ variable "vm_params" {
         nat = bool
         disk_volume = number
         ip_address = optional(string)
+        replicas = optional(number)
     }))
 }
