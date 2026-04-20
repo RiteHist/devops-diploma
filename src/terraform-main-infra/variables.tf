@@ -29,3 +29,22 @@ variable "ssh_key_path" {
     type = string
     default = "~/.ssh/id_ed25519.pub"
 }
+
+variable "vm_metadata" {
+    type = map(string)
+}
+
+variable "vm_params" {
+    type = map(object({
+        name = string
+        image_family = string
+        platform_id = string
+        cores = number
+        memory = number
+        core_fraction = number
+        preemptible = bool
+        nat = bool
+        disk_volume = number
+        ip_address = optional(string)
+    }))
+}

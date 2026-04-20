@@ -8,4 +8,5 @@ resource "yandex_vpc_subnet" "subnet" {
     zone = each.value.zone
     v4_cidr_blocks = [each.value.cidr]
     network_id = yandex_vpc_network.vpc.id
+    route_table_id = yandex_vpc_route_table.rt_nat.id
 }
