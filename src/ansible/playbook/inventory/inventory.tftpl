@@ -1,0 +1,14 @@
+[kube_control_plane]
+%{ for host in master_nodes ~}
+${host.name} ansible_host=${host.network_interface[0].ip_address}
+%{ endfor ~}
+
+[etcd]
+%{ for host in master_nodes ~}
+${host.name} ansible_host=${host.network_interface[0].ip_address}
+%{ endfor ~}
+
+[kube_node]
+%{ for host in worker_nodes ~}
+${host.name} ansible_host=${host.network_interface[0].ip_address}
+%{ endfor ~}

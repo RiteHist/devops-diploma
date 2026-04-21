@@ -23,6 +23,7 @@ vm_params = {
         platform_id = "standard-v4a"
         disk_volume = 30
         nat = false
+        replicas = 1
     }
     "worker_node" = {
         name = "worker"
@@ -41,3 +42,5 @@ vm_params = {
 vm_metadata = {
     "serial-port-enable" = "1"
 }
+
+ansible_inventory_path = "../ansible/playbook/inventory"

@@ -49,3 +49,7 @@ variable "vm_params" {
         replicas = optional(number)
     }))
 }
+
+variable "ansible_inventory_path" {
+    type = string
+}

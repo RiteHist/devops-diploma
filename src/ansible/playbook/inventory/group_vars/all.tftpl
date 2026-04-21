@@ -1,0 +1,4 @@
+ansible_ssh_common_args: "-o ProxyJump=${username}@${nat.network_interface[0].nat_ip_address}"
+ansible_user: ${username}
+kube_network_plugin: calico
+container_manager: containerd
