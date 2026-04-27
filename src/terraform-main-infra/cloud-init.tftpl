@@ -6,3 +6,13 @@ users:
     sudo: ['ALL=(ALL) NOPASSWD:ALL']
     groups: sudo
     shell: /bin/bash
+
+%{ if nat }
+packages:%{ for pkg in jsondecode(packages) }
+  - ${pkg}%{ endfor }
+
+runcmd:
+  - "iptables -t nat -A PREROUTING -p tcp --dport 6443 -j DNAT --to-destination ${controller_ip}:6443"
+  - iptables -A FORWARD -p tcp -d ${controller_ip} --dport 6443 -j ACCEPT
+  - netfilter-persistent save
+%{ endif }

@@ -3,6 +3,20 @@ data "template_file" "cloud_config" {
     vars = {
         vm_username = var.vm_username
         ssh_pub_key = local.ssh_pub_key
+        nat = false
+        packages = null
+        controller_ip = null
+    }
+}
+
+data "template_file" "cloud_config_nat" {
+    template = file("${path.module}/cloud-init.tftpl")
+    vars = {
+        vm_username = var.vm_username
+        ssh_pub_key = local.ssh_pub_key
+        nat = true
+        packages = jsonencode(var.vm_params["nat_vm"].packages)
+        controller_ip = yandex_compute_instance.control[0].network_interface[0].ip_address
     }
 }
 
@@ -38,7 +52,7 @@ resource "yandex_compute_instance" "nat" {
         preemptible = var.vm_params["nat_vm"].preemptible
     }
 
-    metadata = local.vm_metadata_combined
+    metadata = local.nat_metadata_combined
 }
 
 resource "yandex_compute_instance" "control" {

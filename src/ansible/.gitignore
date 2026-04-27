@@ -1,2 +1,4 @@
 inventory.ini
 all.yaml
+.venv
+artifacts/

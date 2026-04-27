@@ -12,6 +12,7 @@ vm_params = {
         disk_volume = 10
         nat = true
         ip_address = "10.0.1.254"
+        packages = ["iptables-persistent"]
     }
     "control_node" = {
         name = "control"

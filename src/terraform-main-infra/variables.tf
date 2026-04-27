@@ -47,6 +47,7 @@ variable "vm_params" {
         disk_volume = number
         ip_address = optional(string)
         replicas = optional(number)
+        packages = optional(list(string))
     }))
 }
 

@@ -1,3 +1,6 @@
+[bastion]
+${nat.name} ansible_host=${nat.network_interface[0].nat_ip_address}
+
 [kube_control_plane]
 %{ for host in master_nodes ~}
 ${host.name} ansible_host=${host.network_interface[0].ip_address}
