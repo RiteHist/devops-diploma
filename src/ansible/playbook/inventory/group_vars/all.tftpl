@@ -4,5 +4,7 @@ kube_network_plugin: calico
 container_manager: containerd
 kubeconfig_localhost: true
 kubectl_localhost: true
+ingress_nginx_enabled: true
+ingress_nginx_namespace: "ingress-nginx"
 supplementary_addresses_in_ssl_keys:
  - "${nat.network_interface[0].nat_ip_address}"
