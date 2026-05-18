@@ -89,12 +89,12 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve -input=false
     
-    - name: Upload inventory.txt
+    - name: Upload inventory.ini
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: actions/upload-artifact@v7
       with:
-        name: inventory.txt
-        path: ${{ github.workspace }}/src/ansible/playbook/inventory/inventory.txt
+        name: inventory.ini
+        path: ${{ github.workspace }}/src/ansible/playbook/inventory/inventory.ini
         archive: false
     
     - name: Upload all.yaml
