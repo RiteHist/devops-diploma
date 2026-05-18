@@ -2,10 +2,10 @@ name: 'Terraform PR plan'
 
 on:
   # For testing
-  workflow_dispatch:
+  # workflow_dispatch:
   # Real
-  # pull_request:
-  #   branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
       with:
-        sparce-checkout: |
+        sparse-checkout: |
           src/terraform-main-infra
           src/ansible
 
