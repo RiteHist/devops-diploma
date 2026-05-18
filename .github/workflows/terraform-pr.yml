@@ -92,13 +92,15 @@ jobs:
     - name: Upload inventory.txt
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: actions/upload-artifact@v7
-      name: inventory.txt
-      path: ../ansible/playbook/inventory/inventory.txt
-      archive: false
+      with:
+        name: inventory.txt
+        path: ../ansible/playbook/inventory/inventory.txt
+        archive: false
     
     - name: Upload all.yaml
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: actions/upload-artifact@v7
-      name: all.yaml
-      path: ../ansible/playbook/inventory/group_vars/all.yaml
-      archive: false
+      with:
+        name: all.yaml
+        path: ../ansible/playbook/inventory/group_vars/all.yaml
+        archive: false
