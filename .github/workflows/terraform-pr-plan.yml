@@ -1,8 +1,11 @@
 name: 'Terraform PR plan'
 
 on:
-  pull_request:
-    branches: [ "main" ]
+  # For testing
+  workflow_dispatch:
+  # Real
+  # pull_request:
+  #   branches: [ "main" ]
 
 permissions:
   contents: read
@@ -12,12 +15,12 @@ jobs:
     name: 'Terraform plan'
     runs-on: ubuntu-latest
     environment: production
-
+      
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
-        working-directory: ./src/
+        working-directory: ./src/terraform-main-infra
 
     steps:
     # Checkout the repository to the GitHub Actions runner
@@ -34,10 +37,30 @@ jobs:
       with:
         terraform_version: "~>1.9.1"
         
+    - name: Create authorized_keys.json
+      run: |
+        cat > authorized_keys.json << 'EOF'
+        ${{ secrets.YC_AUTHORIZED_KEY }}
+        EOF
 
+    - name: Create backend.hcl
+      run: |
+        cat > backend.hcl << 'EOF'
+        ${{ secrets.TERRAFORM_BACKEND }}
+        EOF
+
+    - name: Create personal.auto.tfvars
+      run: |
+        cat > personal.auto.tfvars << 'EOF'
+        ${{ secrets.TERRAFORM_PERSONAL_VARS }}
+        EOF
+        
     # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
-      run: terraform init
+      env:
+        YC_BACKEND_ACCESS_KEY: ${{ secrets.YC_BACKEND_ACCESS_KEY }}
+        YC_BACKEND_SECRET_KEY: ${{ secrets.YC_BACKEND_SECRET_KEY }}
+      run: terraform init -backend-config="access_key=$YC_BACKEND_ACCESS_KEY" -backend-config="secret_key=YC_BACKEND_SECRET_KEY" -backend-config=backend.hcl
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
