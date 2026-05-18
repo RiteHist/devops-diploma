@@ -37,9 +37,9 @@ jobs:
       with:
         terraform_version: "~>1.9.1"
         
-    - name: Create authorized_keys.json
+    - name: Create authorized_key.json
       run: |
-        cat > authorized_keys.json << 'EOF'
+        cat > authorized_key.json << 'EOF'
         ${{ secrets.YC_AUTHORIZED_KEY }}
         EOF
 
