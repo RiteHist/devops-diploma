@@ -1,7 +1,6 @@
 variable "cloud_id" {
   type = string
 }
-# testing 23
 variable "folder_id" {
   type = string
 }
