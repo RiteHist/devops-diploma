@@ -95,14 +95,13 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: inventory.txt
-        path: ../ansible/playbook/inventory/inventory.txt
+        path: ${{ github.workspace }}/src/ansible/playbook/inventory/inventory.txt
         archive: false
     
     - name: Upload all.yaml
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      working-directory: ./src/ansible/playbook/inventory/group_vars
       uses: actions/upload-artifact@v7
       with:
         name: all.yaml
-        path: all.yaml
+        path: ${{ github.workspace }}/src/ansible/playbook/inventory/group_vars/all.yaml
         archive: false
