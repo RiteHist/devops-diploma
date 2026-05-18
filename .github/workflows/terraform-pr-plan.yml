@@ -60,7 +60,10 @@ jobs:
       env:
         YC_BACKEND_ACCESS_KEY: ${{ secrets.YC_BACKEND_ACCESS_KEY }}
         YC_BACKEND_SECRET_KEY: ${{ secrets.YC_BACKEND_SECRET_KEY }}
-      run: terraform init -backend-config="access_key=$YC_BACKEND_ACCESS_KEY" -backend-config="secret_key=YC_BACKEND_SECRET_KEY" -backend-config=backend.hcl
+      run: |
+        echo ::add-mask::$YC_BACKEND_ACCESS_KEY
+        echo ::add-mask::$YC_BACKEND_SECRET_KEY
+        terraform init -backend-config="access_key=${YC_BACKEND_ACCESS_KEY}" -backend-config="secret_key=${YC_BACKEND_SECRET_KEY}" -backend-config=backend.hcl
 
     # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
