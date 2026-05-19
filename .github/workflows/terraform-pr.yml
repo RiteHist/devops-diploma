@@ -17,15 +17,13 @@ jobs:
     name: 'Terraform'
     runs-on: ubuntu-latest
     environment: production
-      
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+
     defaults:
       run:
         shell: bash
         working-directory: ./src/terraform-main-infra
 
     steps:
-    # Checkout the repository to the GitHub Actions runner
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -33,7 +31,6 @@ jobs:
           src/terraform-main-infra
           src/ansible
 
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v1
       with:
@@ -57,16 +54,22 @@ jobs:
         ${{ secrets.TERRAFORM_PERSONAL_VARS }}
         EOF
 
-    - name: Create ssh public key file
+    - name: Create ssh public key files
       run: |
         mkdir -p ~/.ssh
-        cat > ~/.ssh/id_ed25519.pub << 'EOF'
-        ${{ secrets.SSH_PUBLIC_KEY }}
+        cat > ~/.ssh/vm_user.pub << 'EOF'
+        ${{ secrets.SSH_PUBLIC_KEY_VM_USER }}
         EOF
+        cat > ~/.ssh/cicd.pub << 'EOT'
+        ${{ secrets.SSH_PUBLIC_KEY_CICD }}
+        EOT
         chmod 700 ~/.ssh
-        chmod 644 ~/.ssh/id_ed25519.pub
+        chmod 644 ~/.ssh/vm_user.pub
+        chmod 644 ~/.ssh/cicd.pub
+        cat > extra.tfvars << 'EOF'
+        ssh_key_paths = ["~/.ssh/vm_user.pub", "~/.ssh/cicd.pub"]
+        EOF
         
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
     - name: Terraform Init
       env:
         YC_BACKEND_ACCESS_KEY: ${{ secrets.YC_BACKEND_ACCESS_KEY }}
@@ -76,19 +79,17 @@ jobs:
         echo ::add-mask::$YC_BACKEND_SECRET_KEY
         terraform init -backend-config="access_key=${YC_BACKEND_ACCESS_KEY}" -backend-config="secret_key=${YC_BACKEND_SECRET_KEY}" -backend-config=backend.hcl
 
-    # Checks that all Terraform configuration files adhere to a canonical format
     - name: Terraform Format
       run: terraform fmt -check
 
-    # Generates an execution plan for Terraform
     - name: Terraform Plan
       if: github.event_name == 'pull_request'
-      run: terraform plan -input=false
+      run: terraform plan -input=false -var-file=extra.tfvars
 
     - name: Terraform Apply
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve -input=false
-    
+      run: terraform apply -auto-approve -input=false -var-file=extra.tfvars
+
     - name: Upload inventory.ini
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       uses: actions/upload-artifact@v7
@@ -104,3 +105,58 @@ jobs:
         name: all.yaml
         path: ${{ github.workspace }}/src/ansible/playbook/inventory/group_vars/all.yaml
         archive: false
+  ansible:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: terraform
+    name: 'Ansible'
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./src/ansible/playbook
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: src/ansible
+      
+      - name: Create ssh key files
+        run: |
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/id_ed25519.pub << 'EOF'
+          ${{ secrets.SSH_PUBLIC_KEY_CICD }}
+          EOF
+          cat > ~/.ssh/id_ed25519 << 'EOF'
+          ${{ secrets.SSH_PRIVATE_KEY_CICD }}
+          EOF
+          chmod 700 ~/.ssh
+          chmod 644 ~/.ssh/id_ed25519.pub
+          chmod 600 ~/.ssh/id_ed25519
+          cat > ~/.ssh/config << 'EOF'
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+      
+      - name: Create venv
+        run: |
+          python -m venv .venv
+          source .venv/bin/actiavate
+          echo "PATH=$PATH" >> $GITHUB_ENV
+          echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
+      
+      - name: Install python requirements
+        run: pip install -r venv_requirements.txt --quiet
+
+      - name: Install ansible requirements
+        run: ansible-galaxy install -r requirements.yaml
+      
+      - name: Add key to ssh agent
+        run: |
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_ed25519
+
+      - name: Run kubespray
+        run: ansible-playbook -i inventory/inventory.ini -b main.yaml -v
