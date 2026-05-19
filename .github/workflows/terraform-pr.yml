@@ -152,7 +152,11 @@ jobs:
           name: inventory.ini
           path: inventory
 
-      
+      - name: Check artifacts
+        run: |
+          cat inventory/inventory.ini
+          cat inventory/group_vars/all.yaml
+          
       - name: Create venv
         run: |
           python -m venv .venv
