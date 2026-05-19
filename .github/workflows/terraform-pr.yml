@@ -156,7 +156,7 @@ jobs:
       - name: Create venv
         run: |
           python -m venv .venv
-          source .venv/bin/actiavate
+          source .venv/bin/activate
           echo "PATH=$PATH" >> $GITHUB_ENV
           echo "VIRTUAL_ENV=$VIRTUAL_ENV" >> $GITHUB_ENV
       
@@ -172,4 +172,4 @@ jobs:
           ssh-add ~/.ssh/id_ed25519
 
       - name: Run kubespray
-        run: ansible-playbook -i inventory/inventory.ini -b main.yaml -v
+        run: ansible-playbook -i inventory/inventory.ini -b main.yaml
