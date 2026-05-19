@@ -140,6 +140,19 @@ jobs:
             UserKnownHostsFile /dev/null
           EOF
       
+      - name: Download all.yaml
+        uses: actions/download-artifact@v8
+        with:
+          name: all.yaml
+          path: inventory/group_vars
+      
+      - name: Download inventory.ini
+        uses: actions/download-artifact@v8
+        with:
+          name: inventory.ini
+          path: inventory
+
+      
       - name: Create venv
         run: |
           python -m venv .venv
