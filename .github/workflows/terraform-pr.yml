@@ -144,16 +144,17 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: all.yaml
-          path: inventory/group_vars
+          path: ./inventory/group_vars
       
       - name: Download inventory.ini
         uses: actions/download-artifact@v8
         with:
           name: inventory.ini
-          path: inventory
+          path: ./inventory
 
       - name: Check artifacts
         run: |
+          ls -a -R
           cat inventory/inventory.ini
           cat inventory/group_vars/all.yaml
           
