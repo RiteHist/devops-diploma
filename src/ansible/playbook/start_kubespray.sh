@@ -9,9 +9,9 @@ if [ ! -d "$VENV_PATH" ]; then
     "$PYTHON_CMD" -m venv "$VENV_PATH"
 fi
 
-"$VENV_PATH/bin/pip" install -r "$VENV_REQUIREMENTS" --quiet
-
 source .venv/bin/activate
+
+"$VENV_PATH/bin/pip" install -r "$VENV_REQUIREMENTS" --quiet
 
 ansible-galaxy install -r requirements.yaml
 
