@@ -144,18 +144,16 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: all.yaml
-          path: ./inventory/group_vars
+          path: ${{ github.workspace }}/src/ansible/playbook/inventory/group_vars/
       
       - name: Download inventory.ini
         uses: actions/download-artifact@v8
         with:
           name: inventory.ini
-          path: ./inventory
+          path: ${{ github.workspace }}/src/ansible/playbook/inventory/
 
       - name: Check artifacts
         run: |
-          ls -a -R
-          pwd
           cat inventory/inventory.ini
           cat inventory/group_vars/all.yaml
           
