@@ -24,9 +24,9 @@ variable "vm_username" {
   type = string
 }
 
-variable "ssh_key_path" {
-  type    = string
-  default = "~/.ssh/id_ed25519.pub"
+variable "ssh_key_paths" {
+  type    = list(string)
+  default = ["~/.ssh/id_ed25519.pub"]
 }
 
 variable "vm_metadata" {

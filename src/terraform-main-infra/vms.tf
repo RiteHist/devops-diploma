@@ -2,7 +2,7 @@ data "template_file" "cloud_config" {
   template = file("${path.module}/cloud-init.tftpl")
   vars = {
     vm_username   = var.vm_username
-    ssh_pub_key   = local.ssh_pub_key
+    ssh_pub_keys  = jsonencode(local.ssh_pub_keys)
     nat           = false
     packages      = null
     controller_ip = null
@@ -13,7 +13,7 @@ data "template_file" "cloud_config_nat" {
   template = file("${path.module}/cloud-init.tftpl")
   vars = {
     vm_username   = var.vm_username
-    ssh_pub_key   = local.ssh_pub_key
+    ssh_pub_keys  = jsonencode(local.ssh_pub_keys)
     nat           = true
     packages      = jsonencode(var.vm_params["nat_vm"].packages)
     controller_ip = yandex_compute_instance.control[0].network_interface[0].ip_address
