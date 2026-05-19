@@ -155,6 +155,7 @@ jobs:
       - name: Check artifacts
         run: |
           ls -a -R
+          pwd
           cat inventory/inventory.ini
           cat inventory/group_vars/all.yaml
           
