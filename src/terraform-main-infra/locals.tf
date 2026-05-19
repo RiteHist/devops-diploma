@@ -5,7 +5,7 @@ locals {
       cidr = var.subnet_cidr_list[i]
     }
   }
-  ssh_pub_keys           = [for path in var.ssh_key_paths : file(path)]
+  ssh_pub_keys          = [for path in var.ssh_key_paths : file(path)]
   vm_metadata_combined  = merge(var.vm_metadata, { "user-data" = "${data.template_file.cloud_config.rendered}" })
   nat_metadata_combined = merge(var.vm_metadata, { "user-data" = "${data.template_file.cloud_config_nat.rendered}" })
 }
