@@ -47,6 +47,7 @@ variable "vm_params" {
     ip_address    = optional(string)
     replicas      = optional(number)
     packages      = optional(list(string))
+    labels        = optional(map(string))
   }))
 }
 

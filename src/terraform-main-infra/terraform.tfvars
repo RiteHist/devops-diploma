@@ -13,6 +13,7 @@ vm_params = {
     nat           = true
     ip_address    = "10.0.1.254"
     packages      = ["iptables-persistent"]
+    labels        = { "k8s" = "nat" }
   }
   "control_node" = {
     name          = "control"
@@ -25,6 +26,7 @@ vm_params = {
     disk_volume   = 30
     nat           = false
     replicas      = 1
+    labels        = { "k8s" = "control" }
   }
   "worker_node" = {
     name          = "worker"
@@ -37,6 +39,7 @@ vm_params = {
     disk_volume   = 10
     nat           = false
     replicas      = 3
+    labels        = { "k8s" = "worker" }
   }
 }
 

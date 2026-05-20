@@ -31,6 +31,7 @@ data "yandex_compute_image" "ubuntu_image" {
 resource "yandex_compute_instance" "nat" {
   name        = var.vm_params["nat_vm"].name
   platform_id = var.vm_params["nat_vm"].platform_id
+  labels      = var.vm_params["nat_vm"].labels
 
   resources {
     cores         = var.vm_params["nat_vm"].cores
@@ -61,6 +62,7 @@ resource "yandex_compute_instance" "control" {
   zone        = count.index % 2 == 0 ? var.zone_list[1] : var.zone_list[2]
   name        = "${var.vm_params["control_node"].name}-${count.index + 1}"
   platform_id = var.vm_params["control_node"].platform_id
+  labels      = var.vm_params["control_node"].labels
 
   resources {
     cores         = var.vm_params["control_node"].cores
@@ -85,7 +87,8 @@ resource "yandex_compute_instance" "control" {
 }
 
 resource "yandex_compute_instance" "worker" {
-  count = var.vm_params["worker_node"].replicas
+  count  = var.vm_params["worker_node"].replicas
+  labels = var.vm_params["worker_node"].labels
 
   zone        = count.index % 2 == 0 ? var.zone_list[1] : var.zone_list[2]
   name        = "${var.vm_params["worker_node"].name}-${count.index + 1}"
