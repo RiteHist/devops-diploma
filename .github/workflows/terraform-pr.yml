@@ -188,5 +188,9 @@ jobs:
           eval $(ssh-agent -s)
           ssh-add ~/.ssh/id_ed25519
 
+      # Because Yandex Cloud VMs sometimes are not immediately available by SSH after the creation
+      - name: Wait
+        run: sleep 1m
+      
       - name: Run kubespray
         run: ansible-playbook -i inventory/inventory.ini -b main.yaml
