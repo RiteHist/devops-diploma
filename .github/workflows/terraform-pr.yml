@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     outputs:
-      need_ansible: ${{ steps.plan.outputs.needs_ansible }}
+      need_ansible: ${{ steps.plan.outputs.need_ansible }}
 
     defaults:
       run:
