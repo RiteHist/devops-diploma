@@ -70,9 +70,6 @@ jobs:
         ssh_key_paths = ["~/.ssh/vm_user.pub", "~/.ssh/cicd.pub"]
         EOF
     
-    - name: Install jq
-      run: sudo apt-get update && sudo apt-get install -y jq
-        
     - name: Terraform Init
       env:
         YC_BACKEND_ACCESS_KEY: ${{ secrets.YC_BACKEND_ACCESS_KEY }}
@@ -88,15 +85,19 @@ jobs:
     - name: Terraform Plan
       run: |
         terraform plan -input=false -var-file=extra.tfvars -out=plan.tfplan
-        echo "needs_ansible=false" >> $GITHUB_OUTPUT
+        echo "need_ansible=false" >> $GITHUB_OUTPUT
+
+        terraform show -json plan.tfplan
 
         if terraform show -json plan.tfplan | jq -e '
           .resource_changes[]? |
           select(.change.actions | index("create") or index("update") or index("delete")) |
           select((.change.after.labels?["k8s"] != null))
         ' > /dev/null; then
-          echo "needs_ansible=true" >> $GITHUB_OUTPUT
+          echo "need_ansible=true" >> $GITHUB_OUTPUT
         fi
+
+        echo $GITHUB_OUTPUT
 
 
     - name: Terraform Apply
