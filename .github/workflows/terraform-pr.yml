@@ -69,6 +69,9 @@ jobs:
         cat > extra.tfvars << 'EOF'
         ssh_key_paths = ["~/.ssh/vm_user.pub", "~/.ssh/cicd.pub"]
         EOF
+    
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
         
     - name: Terraform Init
       env:
@@ -83,12 +86,26 @@ jobs:
       run: terraform fmt -check
 
     - name: Terraform Plan
-      if: github.event_name == 'pull_request'
-      run: terraform plan -input=false -var-file=extra.tfvars
+      run: |
+        terraform plan -input=false -var-file=extra.tfvars -out=plan.tfplan -detailed-exitcode
+        PLAN_EXIT=$?
+        echo "exitcode=$PLAN_EXIT" >> $GITHUB_OUTPUT
+        echo "needs_ansible=false" >> $GITHUB_OUTPUT
+
+        if [ $PLAN_EXIT -eq 2 ]; then
+          if terraform show -json plan.tfplan | jq -e '
+            .resource_changes[]? |
+            select(.change.actions | index("create") or index("update") or index("delete")) |
+            select((.change.after.labels?["k8s"] != null))
+          ' > /dev/null; then
+            echo "needs_ansible=true" >> $GITHUB_OUTPUT
+          fi
+        fi
+
 
     - name: Terraform Apply
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-      run: terraform apply -auto-approve -input=false -var-file=extra.tfvars
+      run: terraform apply -auto-approve -input=false -var-file=extra.tfvars plan.tfplan
 
     - name: Upload inventory.ini
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -106,7 +123,7 @@ jobs:
         path: ${{ github.workspace }}/src/ansible/playbook/inventory/group_vars/all.yaml
         archive: false
   ansible:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.terraform.outputs.need_ansible == 'true'
     needs: terraform
     name: 'Ansible'
     runs-on: ubuntu-latest
