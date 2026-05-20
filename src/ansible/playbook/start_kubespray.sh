@@ -19,3 +19,12 @@ eval $(ssh-agent -s)
 ssh-add ~/.ssh/id_ed25519
 
 ansible-playbook -i inventory/inventory.ini -b main.yaml -v
+
+# Add NAT ip to admin.conf and place it into ~/.kube as config
+cd inventory/artifacts
+NAT_IP=$(awk '/\[bastion\]/ {flag=1; next} flag && /ansible_host=/ {gsub(/.*=/,""); print; flag=0}' ../inventory\(4\).ini)
+sed -i "s|server: https://[^:]*:6443|server: https://${NAT_IP}:6443|" admin.conf
+if [ ! -d ~/.kube ]; then
+    mkdir ~/.kube
+fi
+mv admin.conf ~/.kube/config
