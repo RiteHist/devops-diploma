@@ -90,7 +90,7 @@ resource "yandex_compute_instance" "worker" {
   count  = var.vm_params["worker_node"].replicas
   labels = var.vm_params["worker_node"].labels
 
-  zone        = count.index % 2 == 0 ? var.zone_list[1] : var.zone_list[2]
+  zone        = count.index % 2 != 0 ? var.zone_list[1] : var.zone_list[2]
   name        = "${var.vm_params["worker_node"].name}-${count.index + 1}"
   platform_id = var.vm_params["worker_node"].platform_id
 
@@ -106,7 +106,7 @@ resource "yandex_compute_instance" "worker" {
     }
   }
   network_interface {
-    subnet_id = count.index % 2 == 0 ? yandex_vpc_subnet.subnet["1"].id : yandex_vpc_subnet.subnet["2"].id
+    subnet_id = count.index % 2 != 0 ? yandex_vpc_subnet.subnet["1"].id : yandex_vpc_subnet.subnet["2"].id
     nat       = var.vm_params["worker_node"].nat
   }
   scheduling_policy {
