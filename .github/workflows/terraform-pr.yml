@@ -194,3 +194,97 @@ jobs:
       
       - name: Run kubespray
         run: ansible-playbook -i inventory/inventory.ini -b main.yaml
+  kube:
+    needs: ansible
+    name: "k8s manifests"
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout manifests
+        uses: actions/checkout@v6
+        with:
+          repository: ritehist/devops-diploma-kube
+          ref: 'main'
+        
+      - name: Download inventory.ini
+        uses: actions/download-artifact@v8
+        with:
+          name: inventory.ini
+      
+      - name: Parse controller and NAT IPs
+        id: ips
+        run: |
+          NAT_IP=$(awk '/\[bastion\]/ {flag=1; next} flag && /ansible_host=/ {gsub(/.*=/,""); print; flag=0}' inventory.ini)
+          CONTROLLER_IP=$(awk '/\[kube_control_plane\]/ {flag=1; next} flag && /ansible_host=/ {gsub(/.*=/,""); print; flag=0}' inventory.ini)
+          echo "nat_ip=$NAT_IP" >> $GITHUB_OUTPUT
+          echo "controller_ip=$CONTROLLER_IP" >> $GITHUB_OUTPUT
+        
+      - name: Create ssh key file
+        run: |
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/id_ed25519 << 'EOF'
+          ${{ secrets.SSH_PRIVATE_KEY_CICD }}
+          EOF
+          chmod 700 ~/.ssh
+          chmod 600 ~/.ssh/id_ed25519
+          cat > ~/.ssh/config << 'EOF'
+          Host *
+            StrictHostKeyChecking no
+            UserKnownHostsFile /dev/null
+          EOF
+      
+      - name: Add key to ssh agent
+        run: |
+          eval $(ssh-agent -s)
+          ssh-add ~/.ssh/id_ed25519
+
+      - name: Copy admin.conf from controller
+        env:
+          NAT_IP: ${{ steps.ips.outputs.nat_ip }}
+          CONTROLLER_IP: ${{ steps.ips.outputs.controller_ip }}
+        run: |
+          ssh -o ProxyJump=${{ vars.VM_USERNAME }}@${NAT_IP} ${{ vars.VM_USERNAME }}@${CONTROLLER_IP} "sudo cat /etc/kubernetes/admin.conf" > admin.conf
+      
+      - name: Change server in admin.conf
+        env:
+          NAT_IP: ${{ steps.ips.outputs.nat_ip }}
+        run: |
+          sed -i "s|server: https://[^:]*:6443|server: https://${NAT_IP}:6443|" admin.conf
+      
+      - name: Get admin.conf content
+        id: kubeconfig
+        run: |
+          CONFIG_CONTENT=$(cat admin.conf | base64 -w 0)
+          echo "::add-mask::$CONFIG_CONTENT"
+          echo "kubeconfig=$CONFIG_CONTENT" >> $GITHUB_OUTPUT
+      
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+      
+      - name: Set kube context
+        uses: azure/k8s-set-context@v5
+        with:
+          method: kubeconfig
+          kubeconfig: ${{ steps.kubeconfig.outputs.kubeconfig }}
+          kubeconfig-encoding: base64
+      
+      - name: Deploy app manifests
+        uses: Azure/k8s-deploy@v5
+        with:
+          manifests: src/app-config/
+          action: deploy
+      
+      - name: Install helm
+        uses: azure/setup-helm@v5.0.0
+        id: install
+      
+      - name: Install helm chart
+        run: |
+          helm install monitoring -f src/kube-prometheus-stack/values.yaml oci://ghcr.io/prometheus-community/charts/kube-prometheus-stack --create-namespace -n monitoring
+      
+      - name: Create grafana ingress
+        run: |
+          kubectl apply -f grafana-ingress.yaml
